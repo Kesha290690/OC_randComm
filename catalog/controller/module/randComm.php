@@ -13,6 +13,8 @@ class ControllerModuleRandComm extends Controller {
         $this->load->model('module/randComm');
 
         $this->load->model('tool/image');
+		
+		$this->load->model('catalog/category');
 
         $data = array();
 
@@ -20,8 +22,14 @@ class ControllerModuleRandComm extends Controller {
         {
             if(isset($this->request->get['path']))
             {
-                preg_match('/([0-9]{1,3})./', $this->request->get['path'],$path);
-
+                preg_match('/(\d+)(?!.*\d)/', $this->request->get['path'],$path);
+				
+				$category_info = $this->model_catalog_category->getCategory($path[0]);
+				
+				$data['category_name'] = $category_info['name'];
+				
+				$data['module_name'] = $setting['name'];
+                
                 $reviews = $this->model_module_randComm->getRandComment($setting['rating'],$setting['limit'],$path[0]);
 
                 foreach($reviews as $review)
@@ -31,11 +39,14 @@ class ControllerModuleRandComm extends Controller {
                       'text'        => $review['text'],
                       'date_added'  => $review['date_added'],
                       'rating'      => $review['rating'],
-                      'image'       => $this->model_tool_image->resize($review['image'], $setting['width'], $setting['height'])
+                      'image'       => $this->model_tool_image->resize($review['image'], $setting['width'], $setting['height']),
+                      'name'        => $review['name'],
+                      'href'        => $this->url->link('product/product', 'product_id=' . $review['product_id'])
                     );
                 }
             }
         }
+		
 
         if(isset($data['reviews']))
         {
